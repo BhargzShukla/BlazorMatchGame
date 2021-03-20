@@ -41,7 +41,10 @@
         }
     </div>
     <br />
-    @if (_shuffledAnimals.TrueForAll(i => i == string.Empty))
+    <div class="row">
+        <h2>Matches found: @Convert.ToString(matchesFound)</h2>
+    </div>
+    @if (matchesFound == 8)
     {
         <div class="row">
             <h3 class="win-text">YOU WIN! 🎉🎉🎉</h3>
@@ -69,6 +72,8 @@
     };
 
     List<string> _shuffledAnimals = new();
+    
+    int matchesFound = 0;
 
     protected override void OnInitialized()
     {
@@ -77,6 +82,7 @@
 
     private void SetUpGame()
     {
+        matchesFound = 0;
         var random = new Random();
         _shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
     }
@@ -96,6 +102,7 @@
         {
     // Match found! Reset for next pair.
             lastAnimalFound = string.Empty;
+            matchesFound++;
 
     // Replace found animals with empty string to hide them.
             _shuffledAnimals = _shuffledAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
