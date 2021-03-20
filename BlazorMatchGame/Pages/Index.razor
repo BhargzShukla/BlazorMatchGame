@@ -3,6 +3,7 @@
 <style>
     .container {
         width: 400px;
+        text-align: center;
     }
     
     button {
@@ -10,26 +11,52 @@
         height: 100px;
         font-size: 50px;
     }
+    
+    .win-text {
+        color: darkgreen;
+        text-align: center;
+        text-align: -moz-center;
+        width: 100%;
+    }
+    
+    .btn-reset {
+        width: 100%;
+        height: auto;
+    }
 </style>
 
 <h1>Animal Match Game</h1>
 
 <div class="container">
     <div class="row">
-        @foreach (var animal in _shuffledAnimals)
+        @for (var animalNumber = 0; animalNumber < _shuffledAnimals.Count; animalNumber++)
         {
+            var animal = _shuffledAnimals[animalNumber];
+            var animalDescription = $"Button #{animalNumber}";
             <div class="col-3">
-                <button type="button" class="btn btn-outline-dark">
+                <button type="button" class="btn btn-outline-dark" @onclick="() => AnimalClick(animal, animalDescription)">
                     <h2>@animal</h2>
                 </button>
             </div>
         }
     </div>
+    <br />
+    @if (_shuffledAnimals.TrueForAll(i => i == string.Empty))
+    {
+        <div class="row">
+            <h3 class="win-text">YOU WIN! 🎉🎉🎉</h3>
+        </div>
+        <br />
+        <div class="row">
+            <button type="button" class="btn btn-success btn-reset" @onclick="SetUpGame">Reset Game</button>
+        </div>
+    }
+
 </div>
 
 @code
 {
-    List<string> animalEmoji = new List<string>()
+    readonly List<string> animalEmoji = new()
     {
         "🐶", "🐶",
         "🦁", "🦁",
@@ -41,7 +68,7 @@
         "🦒", "🦒"
     };
 
-    List<string> _shuffledAnimals = new List<string>();
+    List<string> _shuffledAnimals = new();
 
     protected override void OnInitialized()
     {
@@ -50,7 +77,34 @@
 
     private void SetUpGame()
     {
-        Random random = new Random();
+        var random = new Random();
         _shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+    }
+
+    string lastAnimalFound = string.Empty;
+    string lastAnimalDescription = string.Empty;
+
+    private void AnimalClick(string animal, string animalDescription)
+    {
+        if (lastAnimalFound == string.Empty)
+        {
+    // First selection of the pair. Remember it.
+            lastAnimalFound = animal;
+            lastAnimalDescription = animalDescription;
+        }
+        else if (lastAnimalFound == animal && animalDescription != lastAnimalDescription)
+        {
+    // Match found! Reset for next pair.
+            lastAnimalFound = string.Empty;
+
+    // Replace found animals with empty string to hide them.
+            _shuffledAnimals = _shuffledAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
+        }
+        else
+        {
+    // User select a pair that doesn't match.
+    // Reset selection.
+            lastAnimalFound = string.Empty;
+        }
     }
 }
