@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Timers
 
 <style>
     .container {
@@ -25,8 +26,6 @@
     }
 </style>
 
-<h1>Animal Match Game</h1>
-
 <div class="container">
     <div class="row">
         @for (var animalNumber = 0; animalNumber < _shuffledAnimals.Count; animalNumber++)
@@ -44,8 +43,13 @@
     <div class="row">
         <h2>Matches found: @Convert.ToString(matchesFound)</h2>
     </div>
+    <div class="row">
+        <h2>Time: @timeDisplay</h2>
+    </div>
     @if (matchesFound == 8)
     {
+        timer.Stop();
+        timeDisplay += " - Play Again?";
         <div class="row">
             <h3 class="win-text">YOU WIN! 🎉🎉🎉</h3>
         </div>
@@ -75,14 +79,22 @@
     
     int matchesFound = 0;
 
+    Timer timer;
+    int tenthsOfSecondsElapsed = 0;
+    string timeDisplay;
+
     protected override void OnInitialized()
     {
+        timer = new Timer(100);
+        timer.Elapsed += Timer_Tick;
+        
         SetUpGame();
     }
 
     private void SetUpGame()
     {
         matchesFound = 0;
+        tenthsOfSecondsElapsed = 0;
         var random = new Random();
         _shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
     }
@@ -97,6 +109,8 @@
     // First selection of the pair. Remember it.
             lastAnimalFound = animal;
             lastAnimalDescription = animalDescription;
+
+            timer.Start();
         }
         else if (lastAnimalFound == animal && animalDescription != lastAnimalDescription)
         {
@@ -113,5 +127,15 @@
     // Reset selection.
             lastAnimalFound = string.Empty;
         }
+    }
+
+    private void Timer_Tick(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync((() =>
+        {
+            tenthsOfSecondsElapsed++;
+            timeDisplay = (tenthsOfSecondsElapsed / 10F).ToString("0.0s");
+            StateHasChanged();
+        }));
     }
 }
